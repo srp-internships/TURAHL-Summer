@@ -14,6 +14,11 @@ public class DataContext : DbContext
             new Skill{Id=2, Name = "Dust", Damage = 40},
             new Skill{Id=3, Name = "Epicenter", Damage = 1200}
             );
+
+        modelBuilder.Entity<User>()
+            .Property(user => user.Role)
+            .IsRequired()
+            .HasDefaultValue("Player");
     }
 
     public DbSet<Character> Characters => Set<Character>();

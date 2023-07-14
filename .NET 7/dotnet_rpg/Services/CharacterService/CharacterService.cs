@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using User = dotnet_rpg.Migrations.User;
 
 namespace dotnet_rpg.Services.CharacterService
 {
@@ -21,6 +22,9 @@ namespace dotnet_rpg.Services.CharacterService
 
         private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext!.User
             .FindFirstValue(ClaimTypes.NameIdentifier)!);
+        
+        private string GetUserRole() => _httpContextAccessor.HttpContext!.User
+            .FindFirstValue(ClaimTypes.Role)!;
         
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
         {
@@ -42,7 +46,10 @@ namespace dotnet_rpg.Services.CharacterService
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            var dbCharacters = await _context.Characters.Where(c=>c.User!.Id == GetUserId()).ToListAsync();
+            List<Character> dbCharacters =
+                GetUserRole().Equals("Player")
+                    ? await _context.Characters.Where(c => c.User!.Id == GetUserId()).ToListAsync()
+                    : await _context.Characters.ToListAsync();
             serviceResponse.Data = dbCharacters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             return serviceResponse;
         }   
